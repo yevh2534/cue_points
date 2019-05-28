@@ -20,7 +20,7 @@ class CuePointsCancellableTaskExecutorTests: XCTestCase {
         sut.execute(after: timeOut) {
             exp.fulfill()
         }
-        wait(for: [exp], timeout: timeOut)
+        wait(for: [exp], timeout: timeOut + 1)
     }
     
     func test_cancel_taskWillNotBeExecuted() {

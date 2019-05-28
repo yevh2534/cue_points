@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A0092D14229CF22A009F0A17 /* TrackerOldVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0092D13229CF22A009F0A17 /* TrackerOldVersion.swift */; };
 		A0DC4676224C507100857581 /* TableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0DC4675224C507000857581 /* TableViewController.swift */; };
 		A0F461A6224A613E00027FD6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0F461A5224A613E00027FD6 /* AppDelegate.swift */; };
 		A0F461A8224A613E00027FD6 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0F461A7224A613E00027FD6 /* ViewController.swift */; };
@@ -26,6 +27,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		A0092D11229C58FC009F0A17 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A0F4619A224A613C00027FD6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A0F461A1224A613D00027FD6;
+			remoteInfo = CuePointsTracker;
+		};
 		A0F461C3224A624900027FD6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A0F4619A224A613C00027FD6 /* Project object */;
@@ -57,6 +65,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A0092D13229CF22A009F0A17 /* TrackerOldVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerOldVersion.swift; sourceTree = "<group>"; };
 		A0DC4675224C507000857581 /* TableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewController.swift; sourceTree = "<group>"; };
 		A0F461A2224A613D00027FD6 /* CuePointsTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CuePointsTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0F461A5224A613E00027FD6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -141,6 +150,7 @@
 				A0F461A5224A613E00027FD6 /* AppDelegate.swift */,
 				A0F461A7224A613E00027FD6 /* ViewController.swift */,
 				A0DC4675224C507000857581 /* TableViewController.swift */,
+				A0092D13229CF22A009F0A17 /* TrackerOldVersion.swift */,
 				A0F461A9224A613E00027FD6 /* Main.storyboard */,
 				A0F461AC224A614600027FD6 /* Assets.xcassets */,
 				A0F461AE224A614600027FD6 /* LaunchScreen.storyboard */,
@@ -241,6 +251,7 @@
 			);
 			dependencies = (
 				A0F461D8224A6A4D00027FD6 /* PBXTargetDependency */,
+				A0092D12229C58FC009F0A17 /* PBXTargetDependency */,
 			);
 			name = CuePointsTrackerEngineTests;
 			productName = CuePointsTrackerEngineTests;
@@ -266,6 +277,7 @@
 					};
 					A0F461D0224A6A4D00027FD6 = {
 						CreatedOnToolsVersion = 10.1;
+						TestTargetID = A0F461A1224A613D00027FD6;
 					};
 				};
 			};
@@ -324,6 +336,7 @@
 				A0F461A8224A613E00027FD6 /* ViewController.swift in Sources */,
 				A0DC4676224C507100857581 /* TableViewController.swift in Sources */,
 				A0F461A6224A613E00027FD6 /* AppDelegate.swift in Sources */,
+				A0092D14229CF22A009F0A17 /* TrackerOldVersion.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -350,6 +363,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		A0092D12229C58FC009F0A17 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A0F461A1224A613D00027FD6 /* CuePointsTracker */;
+			targetProxy = A0092D11229C58FC009F0A17 /* PBXContainerItemProxy */;
+		};
 		A0F461C4224A624900027FD6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = A0F461BD224A624900027FD6 /* CuePointsTrackerEngine */;
@@ -610,6 +628,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CuePointsTracker.app/CuePointsTracker";
 			};
 			name = Debug;
 		};
@@ -628,6 +647,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CuePointsTracker.app/CuePointsTracker";
 			};
 			name = Release;
 		};

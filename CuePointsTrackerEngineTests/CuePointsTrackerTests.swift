@@ -192,12 +192,30 @@ class CuePointsTrackerTests: XCTestCase {
         }
     }
     
+    func test_indicesCalculationIsCoreect() {
+        let result = makeSut()
+        result.sut.add(cuePoints: [0, 2.1, 3, 3.1, 5, 8, 9, 10])
+       
+        result.sut.lastSentPointIndex = 2
+        
+        let forwardIndices = result.sut.indicesForPoints(currentTime: 3, destinationTime: 8)
+        XCTAssertEqual(forwardIndices, [3, 4, 5])
+        
+        let backwardIndices = result.sut.indicesForPoints(currentTime: 3, destinationTime: -10)
+        XCTAssertEqual(backwardIndices, [0, 1, 2])
+        
+        let backwardToZeroIndices = result.sut.indicesForPoints(currentTime: 3, destinationTime: 0)
+        XCTAssertEqual(backwardToZeroIndices, [1, 2])
+    }
+    
     //MARK: - Helpers
     
     private func makeSut(withPointsCount count: Int = 0) -> (sut: CuePointsTrackerImpl, executor: CancellableTaskExecutorMock, delegate: CuePointsTrackerDelegateMock) {
         let executorSpy = CancellableTaskExecutorMock()
         let sut = CuePointsTrackerImpl(executor: executorSpy)
-        sut.add(cuePoints: (1...count).map({Double($0)}))
+        if count > 0 {
+            sut.add(cuePoints: (1...count).map({Double($0)}))
+        }
         let delegate = CuePointsTrackerDelegateMock()
         sut.delegate = delegate
         return (sut: sut, executor: executorSpy, delegate: delegate)

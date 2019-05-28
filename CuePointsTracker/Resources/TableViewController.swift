@@ -12,7 +12,8 @@ import CuePointsTrackerEngine
 class TableViewController: UITableViewController {
     
     private let _points: [Double] = {
-        return [1.5, 1.6, 1.7, 1.8, 3, 4, 4.3, 4.32, 5, 10, 10.5]
+        let nextArray = (0...5000).map({ Double($0) / 1000.0 })
+        return nextArray// + [1.5, 1.6, 1.7, 1.8, 3, 4, 4.3, 4.32, 5, 10, 10.5, 11, 11.01, 11.02, 11.03, 11.04, 12.5]
     }()
     
     var points: [Double] = []
@@ -42,8 +43,7 @@ class TableViewController: UITableViewController {
 extension TableViewController: CuePointsTrackerDelegate {
     
     func tracker(_ tracker: CuePointsTracker, didRestoreCuePointsAt indexes: [Int]) {
-        let pts = _points[indexes.first!...indexes.last!]
-        points.removeAll(where: {pts.contains($0)})
+        points.removeSubrange(indexes.first!...indexes.last!)
         tableView.reloadData()
         print("didRestoreCuePointsAt \(indexes)")
     }

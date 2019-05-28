@@ -14,6 +14,7 @@ public protocol CuePointsTracker {
     func pause()
     func seek(to seconds: Double)
     func add(cuePoints: [Double])
+    //TODO: Add method for Removing cue points
 }
 
 public protocol CuePointsTrackerDelegate: class {
@@ -47,6 +48,27 @@ class CuePointsTrackerImpl: CuePointsTracker {
     
     private var staticCurrentTime: TimeInterval = 0
     
+    private var executor: CancellableTaskExecutor
+    
+    private(set) var cuePoints: [Double] = []
+    
+    private let minDelegateInvokationInterval: Double
+    
+    var lastSentPointIndex: Int?
+    
+    //MARK: Public vars
+    
+    weak var delegate: CuePointsTrackerDelegate?
+    
+    //MARK: - Initialization
+    
+    init(executor: CancellableTaskExecutor, minDelegateInvokationInterval: Double = 0.5) {
+        self.executor = executor
+        self.minDelegateInvokationInterval = minDelegateInvokationInterval
+    }
+    
+    //MARK: - CuePointsTracker
+    
     var currentTime: TimeInterval? {
         guard let startDate = startDate else {
             return nil
@@ -56,20 +78,10 @@ class CuePointsTrackerImpl: CuePointsTracker {
             onPlayingTime = lastPoint
             self.startDate = Date(timeIntervalSinceNow: onPlayingTime * -1)
         }
-
+        
         return isPlaying ? onPlayingTime : staticCurrentTime
     }
     
-    weak var delegate: CuePointsTrackerDelegate?
-   
-    var executor: CancellableTaskExecutor
-  
-    var cuePoints: [Double] = []
-    
-    init(executor: CancellableTaskExecutor) {
-        self.executor = executor
-    }
-   
     func start() {
         if cuePoints.isEmpty || isPlaying { return }
         isPlaying = true
@@ -86,47 +98,47 @@ class CuePointsTrackerImpl: CuePointsTracker {
         
         executor.cancel()
         
-        var seconds = seconds
+        var correctedSeconds = seconds
         
-        if let lastPoint = cuePoints.last, seconds > lastPoint {
-            seconds = lastPoint
+        if let lastPoint = cuePoints.last, correctedSeconds > lastPoint {
+            correctedSeconds = lastPoint
         } else if seconds < 0 {
-            seconds = 0
+            correctedSeconds = 0
         }
-    
+        
         guard let currentTime = currentTime, currentTime != seconds else {
             return
         }
         
         //Calculate start shifting (the purpose is update current time as dynamic state)
         if isPlaying {
-            let shift = currentTime - seconds
+            let shift = currentTime - correctedSeconds
             startDate = Date(timeInterval: shift, since: startDate!)
         } else {
-            staticCurrentTime = seconds
+            staticCurrentTime = correctedSeconds
         }
-    
-        if seconds > currentTime {
-            //Calculate indexes
-            if let start = cuePoints.firstIndex(where: { $0 > currentTime }),
-                let end = cuePoints.lastIndex(where: { $0 <= seconds }),
-                start <= end {
-                delegate?.tracker(self, didGoThroughCuePointsAt: (start...end).map({$0}))
-            }
+        
+        if let indices = indicesForPoints(currentTime: currentTime, destinationTime: seconds),
+            let firstIndex = indices.first,
+            let lastIndex = indices.last {
             
-        } else {
-            if  let start = cuePoints.firstIndex(where: { $0 > seconds }),
-                let end = cuePoints.lastIndex(where: { $0 <= currentTime }),
-                start <= end {
-                delegate?.tracker(self, didRestoreCuePointsAt: (start...end).map({$0}))
+            let isForward = seconds > currentTime
+            
+            if isForward {
+                self.delegate?.tracker(self, didGoThroughCuePointsAt: indices)
+                self.lastSentPointIndex = lastIndex
+            } else {
+                self.delegate?.tracker(self, didRestoreCuePointsAt: indices)
+                self.lastSentPointIndex = firstIndex > 0 ? firstIndex - 1 : nil
             }
         }
-
+        
         if isPlaying {
             startWaitingForNextPoint()
         }
+        
     }
-
+    
     func add(cuePoints: [Double]) {
         self.cuePoints.append(contentsOf: cuePoints)
     }
@@ -134,18 +146,75 @@ class CuePointsTrackerImpl: CuePointsTracker {
     //MARK: - Helpers
     
     private func startWaitingForNextPoint() {
-        guard let currentTime = currentTime,
-              let nextPointIndex = cuePoints.firstIndex(where: { $0 > currentTime }) else {
-                return
+        
+        guard let currentTime = currentTime else {
+            return
         }
         
+        guard let start = startIndexForForwarding() else { return }
+        
+        let nextPointIndex = cuePoints.firstIndex(where: { $0 > currentTime + minDelegateInvokationInterval }) ?? cuePoints.count - 1
+        
         let delay = cuePoints[nextPointIndex] - currentTime
+        
         executor.execute(after: delay) { [weak self] in
             guard let `self` = self else {
                 return
             }
-            self.delegate?.tracker(self, didGoThroughCuePointsAt: [nextPointIndex])
+            self.delegate?.tracker(self, didGoThroughCuePointsAt: (start...nextPointIndex).map({$0}))
+            self.lastSentPointIndex = nextPointIndex
             self.startWaitingForNextPoint()
         }
     }
+    
+    func indicesForPoints(currentTime: Double, destinationTime: Double) -> [Int]? {
+        
+        var start: Int?
+        var end: Int?
+        
+        let isForward = destinationTime > currentTime
+        
+        //Find End of indices range
+        if isForward {
+            guard let startIndexForForwarding = startIndexForForwarding() else {
+                return nil
+            }
+            start = startIndexForForwarding
+            let slice = cuePoints[start!...]
+            end = slice.lastIndex(where: { $0 <= destinationTime })
+            
+        } else {
+            if let lastSentPointIndex = lastSentPointIndex {
+                end = lastSentPointIndex
+            } else {
+                //No points to back
+                return nil
+            }
+            
+            let slice = cuePoints[...end!]
+            start = slice.firstIndex(where: { $0 > destinationTime })
+        }
+        
+        guard let firstIndex = start, let lastIndex = end, lastIndex >= firstIndex else {
+            return nil
+        }
+        
+        return (firstIndex...lastIndex).map({ $0 })
+    }
+    
+    private func startIndexForForwarding() -> Int? {
+        var start: Int?
+        if let lastSentPointIndex = lastSentPointIndex {
+            if lastSentPointIndex < cuePoints.count - 1 {
+                start = lastSentPointIndex + 1
+            } else {
+                //No points to forward
+                start = nil
+            }
+        } else {
+            start = 0
+        }
+        return start
+    }
+    
 }
